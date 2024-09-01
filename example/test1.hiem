@@ -1,0 +1,5 @@
+biến a = 3;
+biến b = 4;
+biến c = a + b;
+
+in c;
