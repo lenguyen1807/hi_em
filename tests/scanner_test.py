@@ -1,5 +1,5 @@
 import unittest
-from viet_lox.scanner.scanner import Scanner
+from hi_em.scanner.scanner import Scanner
 
 
 class ScannerTest(unittest.TestCase):
@@ -59,18 +59,19 @@ class ScannerTest(unittest.TestCase):
         )
 
     def test_identifier(self):
-        scanner = Scanner("hàm trả về lớp hiện tại")
+        scanner = Scanner("hàm trả về lớp hiện tại trong khi")
 
         self.assertEqual(
             str(scanner.tokens[1]),
-            "Token(type = trả về, lexeme = trả về, literal = None, line = 1)",
+            "Token(type = return, lexeme = trả về, literal = None, line = 1)",
         )
 
         self.assertEqual(
             str(scanner.tokens[2]),
-            "Token(type = lớp hiện tại, lexeme = lớp hiện tại, literal = None, line = 1)",
+            "Token(type = this, lexeme = lớp hiện tại, literal = None, line = 1)",
         )
 
-
-if __name__ == "__main__":
-    unittest.main()
+        self.assertEqual(
+            str(scanner.tokens[3]),
+            "Token(type = while, lexeme = trong khi, literal = None, line = 1)",
+        )

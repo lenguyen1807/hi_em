@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "viet-lox"
+name = "hi-em"
 version = "0.1.0"
 description = ""
 authors = ["Le Nguyen <lenguyen18072003@gmail.com>"]
@@ -8,7 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.12"
 click = "^8.1.7"
-typer = "^0.12.5"
+rich = "^13.8.0"
 
 
 [build-system]

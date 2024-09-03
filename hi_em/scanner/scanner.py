@@ -1,6 +1,5 @@
 from .token import Token
-from .token_type import TokenType
-from ..lox import Lox
+from .token_type import TokenType, keyword_map
 
 
 class Scanner:
@@ -41,7 +40,7 @@ class Scanner:
             case "+":
                 self.add_token(TokenType.PLUS)
             case ";":
-                self.add_token(TokenType.COMMADOT)
+                self.add_token(TokenType.SEMICOLON)
             case "*":
                 self.add_token(TokenType.STAR)
             case "/":
@@ -54,7 +53,7 @@ class Scanner:
                 (
                     self.add_token(TokenType.BANG_EQUAL)
                     if self.match("=")
-                    else self.add_token(TokenType.SLASH)
+                    else self.add_token(TokenType.BANG)
                 )
             case "=":
                 (
@@ -90,7 +89,9 @@ class Scanner:
                 elif val.isalpha():
                     self.add_identifier()
                 else:
-                    Lox.error(line=self.line, message="Unexpected character")
+                    from ..hi_em import HiEm
+
+                    HiEm.error(line=self.line, message="Unexpected character")
 
     def is_end(self) -> bool:
         return self.current >= len(self.source)
@@ -128,7 +129,9 @@ class Scanner:
             self.advance()
 
         if self.is_end():
-            Lox.error(self.line, "Unterminated string")
+            from ..hi_em import HiEm
+
+            HiEm.error(self.line, "Unterminated string")
             return
 
         self.advance()  # closing "
@@ -148,20 +151,23 @@ class Scanner:
 
         self.add_token(TokenType.NUMBER, float(self.source[self.start : self.current]))
 
+    def is_alpha_numeric(self) -> bool:
+        return self.peek().isdigit() or self.peek().isalpha() or self.peek() == "_"
+
     def add_identifier(self):
         def get_text():
             self.advance()  # get " "
-            while self.peek().isalpha():
+            while self.is_alpha_numeric():
                 self.advance()
             return self.source[self.start : self.current]
 
-        while self.peek().isdigit() or self.peek().isalpha():
+        while self.is_alpha_numeric():
             self.advance()
 
         # don't worry about wtf is this
         # just some magic and it works
         text = self.source[self.start : self.current]
-        if text in ["còn", "trả"]:
+        if text in ["còn", "trả", "trong"]:
             text = get_text()
         elif text == "lớp":
             if self.peek_next() == "c":
@@ -170,10 +176,11 @@ class Scanner:
                 text = get_text()
                 text = get_text()
             else:
+                # TODO: put error here
                 pass
 
         (
-            self.add_token(TokenType(text))
-            if text in TokenType
+            self.add_token(keyword_map[text])
+            if text in keyword_map
             else self.add_token(TokenType.IDENTIFIER)
         )
