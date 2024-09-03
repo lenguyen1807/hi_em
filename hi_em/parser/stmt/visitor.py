@@ -25,3 +25,6 @@ class VisitorStmt:
 
     def visit_while(self, stmt):
         raise NotImplementedError
+
+    def visit_return(self, stmt):
+        raise NotImplementedError

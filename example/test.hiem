@@ -1,5 +1,10 @@
-đặt n = 10;
+hàm xin_chào(tên) {
+    trả về "Xin chào " + tên;
+}
 
-lặp (đặt a = 1; a < n; a = a + 1) {
-    in "chào";
+đặt biến_đếm = 0;
+
+trong khi (biến_đếm < 5) {
+    in xin_chào("Dưa Hấu");
+    biến_đếm = biến_đếm + 1;
 }

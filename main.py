@@ -15,6 +15,3 @@ def main(path):
 if __name__ == "__main__":
     # main()
     HiEm.run_file("./example/test.hiem")
-    # scanner = Scanner("biến đẹp_trai_ngời_ngợi = 3;\nin đẹp_trai;")
-    # for token in scanner.tokens:
-    #     print(token)

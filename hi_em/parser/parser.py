@@ -11,7 +11,17 @@ from .expr.expr import (
     LogicalExpr,
     CallExpr,
 )
-from .stmt.stmt import Stmt, PrintStmt, ExprStmt, VarStmt, BlockStmt, IfStmt, WhileStmt
+from .stmt.stmt import (
+    Stmt,
+    PrintStmt,
+    ExprStmt,
+    VarStmt,
+    BlockStmt,
+    IfStmt,
+    WhileStmt,
+    FuncStmt,
+    ReturnStmt,
+)
 
 
 class ParserError(RuntimeError):
@@ -204,14 +214,50 @@ class Parser:
     # Statement
     # --------------------
 
+    # declaration    → varDecl
+    # 		   | funDecl
+    #            | statement ;
     def declaration(self):
         try:
             if self.match(TokenType.VAR):
                 return self.var_declaration()
+            if self.match(TokenType.FUN):
+                return self.function("function")
             return self.statement()
         except:
             # TODO: implement synchronize
             pass
+
+    # funDecl        → "fun" function ;
+    # function       → IDENTIFIER "(" parameters? ")" block ;
+    # parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
+    def function(self, kind: str):
+        name = self.consume(TokenType.IDENTIFIER, f"Expect {kind} name.")
+
+        # param
+        self.consume(TokenType.LEFT_BRACE, f"Expect '(' after {kind} name.")
+
+        params = []
+        if not self.check(TokenType.RIGHT_BRACE):
+            params.append(self.consume(TokenType.IDENTIFIER, "Expect parameter name."))
+
+            while self.match(TokenType.COMMA):
+                if len(params) >= 10:
+                    from ..hi_em import HiEm
+
+                    HiEm.error_token(self.peek(), "Can't have more than 10 arguments.")
+
+                params.append(
+                    self.consume(TokenType.IDENTIFIER, "Expect parameter name.")
+                )
+
+        self.consume(TokenType.RIGHT_BRACE, "Expect ')' after parameters")
+
+        # body
+        self.consume(TokenType.LEFT_PAREN, "Expect '{' after " + f"{kind} body")
+        body = self.block()
+
+        return FuncStmt(name, params, body)
 
     # varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
     def var_declaration(self):
@@ -243,6 +289,9 @@ class Parser:
 
         if self.match(TokenType.FOR):
             return self.for_statement()
+
+        if self.match(TokenType.RETURN):
+            return self.return_statement()
 
         return self.expr_statement()
 
@@ -326,6 +375,16 @@ class Parser:
             body = BlockStmt([initializer, body])
 
         return body
+
+    def return_statement(self):
+        keyword = self.previous()
+        value = None
+
+        if not self.check(TokenType.SEMICOLON):
+            value = self.expression()
+
+        self.consume(TokenType.SEMICOLON, "Expected ';' after return value.")
+        return ReturnStmt(keyword, value)
 
     # --------------------
     # Utils

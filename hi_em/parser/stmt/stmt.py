@@ -85,3 +85,22 @@ class WhileStmt(Stmt):
 
     def __repr__(self):
         return f"<WhileStmt(condition={repr(self.condition)}, body={repr(self.body)})>"
+
+
+class FuncStmt(Stmt):
+    def __init__(self, name: Token, params: list[Token], body: list[Stmt]) -> None:
+        self.name = name
+        self.params = params
+        self.body = body
+
+    def accept(self, visitor: VisitorStmt):
+        return visitor.visit_function(self)
+
+
+class ReturnStmt(Stmt):
+    def __init__(self, keyword: Token, value: Expr) -> None:
+        self.value = value
+        self.keyword = keyword
+
+    def accept(self, visitor: VisitorStmt):
+        return visitor.visit_return(self)

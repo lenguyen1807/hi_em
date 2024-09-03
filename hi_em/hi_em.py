@@ -66,7 +66,7 @@ class HiEm:
             HiEm.report(token.line, f"at '{token.lexeme}'", message)
 
     @staticmethod
-    def error_rumtime(error: Exception):
+    def error_runtime(error: Exception):
         print(
             f"{str(error)}\n[line {error.token.line}] Error at {error.token.type.value}"
         )

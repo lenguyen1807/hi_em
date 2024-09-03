@@ -21,8 +21,11 @@ from .parser.stmt.stmt import (
     BlockStmt,
     IfStmt,
     WhileStmt,
+    FuncStmt,
+    ReturnStmt,
 )
 from .parser.stmt.environment import Environment
+from .parser.stmt.callable import HiEmCallable, HiEmFunction, ClockNative
 
 
 class InterpreterError(RuntimeError):
@@ -33,12 +36,22 @@ class InterpreterError(RuntimeError):
         self.token = token
 
 
+class ReturnError(RuntimeError):
+    """Return Error"""
+
+    def __init__(self, value: object) -> None:
+        self.value = value
+
+
 class Interpreter(VisitorExpr, VisitorStmt):
     # --------------------
     # Expression
     # --------------------
     def __init__(self) -> None:
-        self.env = Environment()
+        self.globals = Environment()
+        self.env = self.globals
+
+        self.globals.define("đồng_hồ", ClockNative())
 
     def interpret(self, expr: Expr):
         try:
@@ -47,7 +60,7 @@ class Interpreter(VisitorExpr, VisitorStmt):
         except InterpreterError as err:
             from .hi_em import HiEm
 
-            HiEm.error_rumtime(err)
+            HiEm.error_runtime(err)
 
     def evaluate(self, expr: Expr) -> object:
         return expr.accept(self)
@@ -136,6 +149,23 @@ class Interpreter(VisitorExpr, VisitorStmt):
         for arg in expr.arguments:
             arguments.append(self.evaluate(arg))
 
+        if not isinstance(calle, HiEmCallable):
+            from .hi_em import HiEm
+
+            HiEm.error_token(expr.paren, "Can only call functions and classes.")
+
+        function = HiEmCallable.cast(calle)
+
+        if len(arguments) != function.arity():
+            from .hi_em import HiEm
+
+            HiEm.error_token(
+                expr.paren,
+                f"Expected {function.arity()} arguments but got {len(arguments)}.",
+            )
+
+        return function.call(self, arguments)
+
     # --------------------
     # Statement
     # --------------------
@@ -147,7 +177,7 @@ class Interpreter(VisitorExpr, VisitorStmt):
         except InterpreterError as err:
             from .hi_em import HiEm
 
-            HiEm.error_rumtime(err)
+            HiEm.error_runtime(err)
 
     def execute(self, stmt: Stmt):
         stmt.accept(self)
@@ -178,9 +208,6 @@ class Interpreter(VisitorExpr, VisitorStmt):
             self.env = env
             for statement in statements:
                 self.execute(statement)
-        except:
-            # TODO: add error
-            pass
         finally:
             self.env = previous
 
@@ -195,6 +222,19 @@ class Interpreter(VisitorExpr, VisitorStmt):
         while self.truthy(self.evaluate(stmt.condition)):
             self.execute(stmt.body)
         return None
+
+    def visit_function(self, stmt: FuncStmt):
+        function = HiEmFunction(stmt)
+        self.env.define(stmt.name.lexeme, function)
+        return None
+
+    def visit_return(self, stmt: ReturnStmt):
+        value = None
+
+        if stmt.value is not None:
+            value = self.evaluate(stmt.value)
+
+        raise ReturnError(value)
 
     # --------------------
     # Utils
